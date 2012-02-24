@@ -16,7 +16,7 @@ class MyConnection {
 	PGconn *db;
   protected:
 	int process_row(PGresult *res, PGrowValue *columns);
-	friend int myconnection_rowproc_helper(PGresult *res, void *arg, PGrowValue *columns);
+	friend int myconnection_rowproc_helper(PGresult *res, PGrowValue *columns, void *obj);
   public:
 	MyConnection() { db = NULL; }
 	~MyConnection() { disconnect(); }
@@ -39,21 +39,20 @@ class RowProcException : public MyException {
 };
 
 // call actual class method
-int myconnection_rowproc_helper(PGresult *res, void *arg, PGrowValue *columns)
+int myconnection_rowproc_helper(PGresult *res, PGrowValue *columns, void *obj)
 {
-	MyConnection *c = (MyConnection *)arg;
+	MyConnection *c = (MyConnection *)obj;
 	return c->process_row(res, columns);
 }
 
 // actual row processor
 int MyConnection::process_row(PGresult *res, PGrowValue *columns)
 {
-	const char *msg = "process_row.set error";
 	switch (scenario) {
 	case 1:
 		return 1;
 	case 0:
-		PQsetRowProcessorErrMsg(res, (char *)msg);
+		PQsetRowProcessorErrMsg(res, "regular error from processor");
 		return 0;
 	case 3:
 		// exception will be hidden before next query
@@ -110,8 +109,6 @@ int main(int argc, char *argv[])
 {
 	const char *connstr = CONNSTR;
 	const char *q = "show all";
-
-	//MyConnection *c = new MyConnection();
 	std::auto_ptr<MyConnection> c (new MyConnection());
 
 	if (argc != 2) {

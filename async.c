@@ -57,7 +57,7 @@ static void proc_result(struct Context *ctx, PGresult *r)
 	PQclear(r);
 }
 
-static int my_handler(PGresult *res, void *arg, PGrowValue *columns)
+static int my_handler(PGresult *res, PGrowValue *columns, void *arg)
 {
 	struct Context *ctx = arg;
 	switch (scenario) {
@@ -190,7 +190,8 @@ exception:
 int main(int argc, char *argv[])
 {
 	const char *connstr = CONNSTR;
-	const char *q = "select lpad('1', 60, '0') from generate_series(1,1000000);";
+	//const char *q = "select lpad('1', 60, '0') from generate_series(1,1000000);";
+	const char *q = "show all;";
 	PGconn *db;
 	struct Context main_ctx;
 

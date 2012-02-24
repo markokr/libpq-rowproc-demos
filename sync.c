@@ -50,13 +50,18 @@ static void proc_sync(struct Context *ctx, const char *q)
 exception:
 	printf("exception, skipping rows\n");
 	ctx->scenario = 1;
-	r = PQgetResult(ctx->db);
-	printf("final status: %s\n", PQresStatus(PQresultStatus(r)));
-	PQclear(r);
+	while (1) {
+		r = PQgetResult(ctx->db);
+		if (!r)
+			break;
+		printf("final status: %s\n", PQresStatus(PQresultStatus(r)));
+		PQclear(r);
+	}
+	printf("got NULL result\n");
 }
 
 
-static int my_handler(PGresult *res, void *arg, PGrowValue *columns)
+static int my_handler(PGresult *res, PGrowValue *columns, void *arg)
 {
 	struct Context *ctx = arg;
 

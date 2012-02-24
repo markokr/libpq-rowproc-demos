@@ -6,11 +6,12 @@ AM_LIBS = -lpq
 
 AM_CPPFLAGS += '-DCONNSTR="dbname=postgres"'
 
-noinst_PROGRAMS = sync async plus
+noinst_PROGRAMS = sync async plus getrow
 
 sync_SOURCES = sync.c
 async_SOURCES = async.c
 plus_SOURCES = plus.cc
+getrow_SOURCES = getrow.c
 
 
 include antimake.mk

@@ -65,14 +65,12 @@ static int my_handler(PGresult *res, PGrowValue *columns, void *arg)
 		proc_row(ctx, res, columns);
 		return 1;
 	case 0:
-		PQsetRowProcessorErrMsg(res, "std rowproc error");
-		return 0;
-	case 2:
 		ctx->temp_res = res;
 		ctx->temp_columns = columns;
-		return 2;
-	case 3:
-	case 4:
+		return 0;
+	case -1:
+		return -1;
+	case 2:
 		longjmp(ctx->exc, 1);
 	default:
 		return scenario;
@@ -196,7 +194,7 @@ int main(int argc, char *argv[])
 	struct Context main_ctx;
 
 	if (argc != 2) {
-		printf("usage: %s [0|1|2|3]\n", argv[0]);
+		printf("usage: %s [-1|0|1|2]\n", argv[0]);
 		return 1;
 	}
 	scenario = atoi(argv[1]);

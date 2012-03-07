@@ -68,9 +68,8 @@ static int my_handler(PGresult *res, PGrowValue *columns, void *arg)
 	switch (ctx->scenario) {
 	case 1:
 		return 1;
-	case 0:
-		PQsetRowProcessorErrMsg(res, "rowproc error");
-		return 0;
+	case -1:
+		return -1;
 	case 3:
 		longjmp(ctx->exc, 1);
 	default:
@@ -86,7 +85,7 @@ int main(int argc, char *argv[])
 	struct Context main_ctx;
 
 	if (argc != 2) {
-		printf("usage: %s [0|1|2|3]\n", argv[0]);
+		printf("usage: %s [-1|0|1|3]\n", argv[0]);
 		return 1;
 	}
 

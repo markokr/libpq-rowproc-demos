@@ -51,10 +51,9 @@ int MyConnection::process_row(PGresult *res, PGrowValue *columns)
 	switch (scenario) {
 	case 1:
 		return 1;
-	case 0:
-		PQsetRowProcessorErrMsg(res, "regular error from processor");
-		return 0;
-	case 3:
+	case -1:
+		return -1;
+	case 2:
 		// exception will be hidden before next query
 		throw RowProcException("RowProcException");
 	default:
@@ -66,10 +65,7 @@ int MyConnection::process_row(PGresult *res, PGrowValue *columns)
 // drop remaining rows
 void MyConnection::drain(void)
 {
-	PGresult *r;
-	scenario = 1;
-	r = PQgetResult(db);
-	PQclear(r);
+	PQskipResult(db, 1);
 }
 
 // connect to db
@@ -112,7 +108,7 @@ int main(int argc, char *argv[])
 	std::auto_ptr<MyConnection> c (new MyConnection());
 
 	if (argc != 2) {
-		std::cout << "usage: ./plus [0|1|2|3]\n";
+		std::cout << "usage: ./plus [-1|0|1|2]\n";
 		return 1;
 	}
 	scenario = std::atoi(argv[1]);

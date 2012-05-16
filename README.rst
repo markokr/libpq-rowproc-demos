@@ -10,7 +10,7 @@ Demos show simplest usage example.
 
 Usage::
 
-    ./prog [connstr [query]]
+    ./demo-XXX [connstr [query]]
 
 Tests (test-XXX.c)
 ------------------
@@ -20,6 +20,6 @@ more messy than proper for a pure demo.
 
 Usage::
 
-    ./prog <scenario number>
+    ./test-XXX <scenario number>
 
 Look up the scenario numbers in code.

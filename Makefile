@@ -6,13 +6,19 @@ AM_LIBS = -lpq
 
 AM_CPPFLAGS += '-DCONNSTR="dbname=postgres"'
 
-noinst_PROGRAMS = sync async plus getrow getrow-sync
+noinst_PROGRAMS = demo-rowproc-sync demo-rowproc-async \
+		  demo-onerow-sync demo-onerow-async \
+		  test-sync test-async test-plus
 
-sync_SOURCES = sync.c
-async_SOURCES = async.c
-plus_SOURCES = plus.cc
-getrow_SOURCES = getrow.c
-getrow_sync_SOURCES = getrow-sync.c
+test_sync_SOURCES = test-sync.c
+test_async_SOURCES = test-async.c
+test_plus_SOURCES = test-plus.cc
+
+demo_rowproc_sync_SOURCES = demo-rowproc-sync.c
+demo_rowproc_async_SOURCES = demo-rowproc-async.c
+
+demo_onerow_sync_SOURCES = demo-onerow-sync.c
+demo_onerow_async_SOURCES = demo-onerow-async.c
 
 include antimake.mk
 

@@ -9,14 +9,14 @@
 static int scenario;
 
 // C callback that wraps class method
-extern "C" int myconnection_rowproc_helper(PGresult *res, void *arg, PGrowValue *columns);
+extern "C" int myconnection_rowproc_helper(PGresult *res, const PGdataValue *columns, const char **errmsgp, void *obj);
 
 // connection class
 class MyConnection {
 	PGconn *db;
   protected:
-	int process_row(PGresult *res, PGrowValue *columns);
-	friend int myconnection_rowproc_helper(PGresult *res, PGrowValue *columns, void *obj);
+	int process_row(PGresult *res, const PGdataValue *columns);
+	friend int myconnection_rowproc_helper(PGresult *res, const PGdataValue *columns, const char **errmsgp, void *obj);
   public:
 	MyConnection() { db = NULL; }
 	~MyConnection() { disconnect(); }
@@ -32,22 +32,24 @@ class MyException : public std::runtime_error {
 	MyException(const char *msg) : std::runtime_error(msg) { }
 };
 
-// 
+// exception from row processor
 class RowProcException : public MyException {
   public:
 	RowProcException(const char *msg) : MyException(msg) { }
 };
 
 // call actual class method
-int myconnection_rowproc_helper(PGresult *res, PGrowValue *columns, void *obj)
+int myconnection_rowproc_helper(PGresult *res, const PGdataValue *columns, const char **errmsgp, void *obj)
 {
 	MyConnection *c = (MyConnection *)obj;
 	return c->process_row(res, columns);
 }
 
 // actual row processor
-int MyConnection::process_row(PGresult *res, PGrowValue *columns)
+int MyConnection::process_row(PGresult *res, const PGdataValue *columns)
 {
+	if (!columns)
+		return 1;
 	switch (scenario) {
 	case 1:
 		return 1;
@@ -65,7 +67,7 @@ int MyConnection::process_row(PGresult *res, PGrowValue *columns)
 // drop remaining rows
 void MyConnection::drain(void)
 {
-	PQskipResult(db, 1);
+	PQskipResult(db);
 }
 
 // connect to db
@@ -112,6 +114,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	scenario = std::atoi(argv[1]);
+	std::cout << "scenario: " << scenario << '\n';
 
 	try {
 		c->connect(connstr);
@@ -125,9 +128,12 @@ int main(int argc, char *argv[])
 		scenario = 1;
 		c->exec(q);
 		std::cout << "ok\n";
+	} catch (MyException &e) {
+		std::cout << "got MyException, quitting\n";
 	} catch (std::exception &e) {
 		std::cout << "Caught Error: " << e.what() << '\n';
 	}
+	std::cout << "done\n";
 
 	return 0;
 }

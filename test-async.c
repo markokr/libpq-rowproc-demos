@@ -11,8 +11,6 @@
 
 struct Context {
 	PGconn *db;
-	PGresult *temp_res;
-	PGrowValue *temp_columns;
 
 	jmp_buf exc;
 };
@@ -37,7 +35,7 @@ static void dbdie(PGconn *db, const char *msg)
 	die("%s: %s", PQerrorMessage(db));
 }
 
-static void proc_row(struct Context *ctx, PGresult *res, PGrowValue *columns)
+static void proc_row(struct Context *ctx, PGresult *res, const PGdataValue *columns)
 {
 	if (0)
 	printf("column: %.*s\n",
@@ -57,16 +55,20 @@ static void proc_result(struct Context *ctx, PGresult *r)
 	PQclear(r);
 }
 
-static int my_handler(PGresult *res, PGrowValue *columns, void *arg)
+static int my_handler(PGresult *res, const PGdataValue *columns, const char **errmsgp, void *arg)
 {
 	struct Context *ctx = arg;
+
+	if (!columns)
+		return 1;
+
 	switch (scenario) {
 	case 1:
 		proc_row(ctx, res, columns);
 		return 1;
 	case 0:
-		ctx->temp_res = res;
-		ctx->temp_columns = columns;
+		//ctx->temp_res = res;
+		//ctx->temp_columns = columns;
 		return 0;
 	case -1:
 		return -1;
@@ -86,10 +88,6 @@ static int socket_read_cb(struct Context *ctx, PGconn *db)
 	if (!PQconsumeInput(db))
 		return -1;
 
-	/* be ready to handle row data */
-	ctx->temp_columns = NULL;
-	ctx->temp_res = NULL;
-
 	/*
 	 * one query may result in several PGresult's,
 	 * wrap everything in one big loop.
@@ -97,15 +95,6 @@ static int socket_read_cb(struct Context *ctx, PGconn *db)
 	while (1) {
 
 		if (PQisBusy(db)) {
-			if (ctx->temp_columns) {
-				proc_row(ctx, ctx->temp_res, ctx->temp_columns);
-
-				ctx->temp_columns = NULL;
-				ctx->temp_res = NULL;
-
-				continue;
-			}
-
 			/* need to wait for more data from network */
 			return 0;
 		}

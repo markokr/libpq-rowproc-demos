@@ -61,7 +61,7 @@ exception:
 }
 
 
-static int my_handler(PGresult *res, PGrowValue *columns, void *arg)
+static int my_handler(PGresult *res, const PGdataValue *columns, const char **errmsg, void *arg)
 {
 	struct Context *ctx = arg;
 

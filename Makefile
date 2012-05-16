@@ -22,6 +22,6 @@ demo_onerow_async_SOURCES = demo-onerow-async.c
 
 include antimake.mk
 
-antimake.mk:
-	wget -q https://raw.github.com/markokr/libusual/master/mk/antimake.mk
+#antimake.mk:
+#	wget -q https://raw.github.com/markokr/libusual/master/mk/antimake.mk
 
